@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>PHP Scripts for testing purposes</title>
+		<!--Import Google Icon Font-->
+		<link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+		<link rel="icon" type="image/x-icon" href="favicon.ico" />
+		<link rel="stylesheet" href="css/materialize.min.css">
+		<link rel="stylesheet" href="codemirror/lib/codemirror.css">
+		<link rel="stylesheet" href="css/main.css">
+	</head>
+	<body>
+		<div class="row">
+			<div id="files-list-wrapper" class="col m12 l3">
+				<ul id="files-list" class="collection with-header">
+					<li class="collection-header">
+						<a class="btn-floating btn-small waves-effect waves-light blue modal-trigger right" href="#add-new-script-modal" title="Add new script">
+							<i class="material-icons">add</i>
+						</a>
+						<div id="add-new-script-modal" class="modal">
+							<form id="new-script-name-form">
+								<div class="modal-content">
+									<h4>Add new script</h4>
+									<div class="row">
+										<div class="input-field col s12">
+											<input type="text" id="new-script-name" placeholder="some_script_name" />
+											<label for="new-script-name">New script name</label>
+										</div>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="submit" id="add-new-script-btn" class="waves-effect waves-green btn-flat">Add script</button>
+								</div>
+							</form>
+						</div>
+						<h4>Files list</h4>
+					</li>
+				</ul>
+			</div>
+			<div id="file-content-wrapper" class="col m12 l9">
+				<ul class="collection with-header">
+					<li class="collection-header"><h4>File content</h4></li>
+				</ul>
+				<div id="file-content"></div>
+				<div class="divider"></div>
+				<br/>
+				<div id="file-content-actions">
+					<button class="btn waves-effect waves-light disabled" type="button" id="save-file-content-btn">
+						Submit
+						<i class="material-icons right">send</i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/materialize.min.js"></script>
+	<script src="codemirror/lib/codemirror.js"></script>
+	
+	<script src="codemirror/mode/xml/xml.js"></script>
+	<script src="codemirror/mode/css/css.js"></script>
+	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
+	<script src="codemirror/mode/javascript/javascript.js"></script>
+	<script src="codemirror/mode/php/php.js"></script>
+	
+	
+	<script src="js/main.js"></script>
+</html>
