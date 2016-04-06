@@ -2,3 +2,5 @@
 .codelite
 *.phprj
 *.workspace
+
+scripts/*
