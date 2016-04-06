@@ -1,0 +1,4 @@
+# remove IDE settings
+.codelite
+*.phprj
+*.workspace
