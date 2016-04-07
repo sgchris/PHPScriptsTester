@@ -220,6 +220,57 @@
 
 			return scriptName;
 		},
+
+		init: function() {
+
+			// load the current scripts
+			filesList.load();
+
+			// add new script button
+			$('#add-new-script-btn').on('click', function() {
+				var title = 'Create script',
+					initialValue = '',
+					inputLabel = 'New script name',
+					placeholder = '',
+					buttonText = 'Create',
+					buttonIcon = null;
+
+				dialog.prompt(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, function(newScriptName) {
+					if (newScriptName) {
+						filesList.createAndAdd(newScriptName);
+					}
+				});
+			});
+
+			// assign events to the list
+			$('#files-list-wrapper')
+				.on('click', '.load-source-link', function() {
+					filesList.selectScript($(this).parents('.collection-item').attr('script-name'));
+				})
+				.on('click', '.rename-script', function() {
+					// get the script name to delete
+					var scriptName = $(this).parents('.collection-item').attr('script-name');
+					
+					var newName = prompt('New script name', scriptName);
+					if (!newName) {
+						return;
+					}
+					
+					api.renameScript(scriptName, newName);
+					
+				})
+				.on('click', '.delete-script', function() {
+					if (!confirm('sure?')) {
+						return;
+					}
+					
+					// get the script name to delete
+					var scriptName = $(this).parents('.collection-item').attr('script-name');
+					
+					filesList.delete(scriptName);
+				});
+
+		},
 		
 		// mark and load a script
 		selectScript: function(scrName) {
@@ -329,17 +380,25 @@
 	var editor = {
 		obj: null,
 		init: function() {
+			if (!editor._initialized) {
+				editor._initialized = true;
+			} else {
+				return;
+			}
+			// initialize the codemirror object
 			if (!editor.obj) {
-				// initialize the codemirror object
 				editor.obj = CodeMirror($('#file-content').get(0), {
 					lineNumbers: true,
 					mode: "htmlmixed",
 					extraKeys: {
-						'Ctrl-S': api.saveScriptContent
+						'Ctrl-S': editor.saveContent
 					}
 				});
 				editor.obj.setSize('100%', '100%');
 			}
+
+			// assign event to the "Save" button
+			$('#save-file-content-btn').on('click', editor.saveContent);
 		},
 		setContent: function(content) {
 			editor.init();
@@ -348,6 +407,12 @@
 		getContent: function() {
 			editor.init();
 			return editor.obj.getValue();
+		},
+		saveContent: function() {
+			//filesList
+			if (filesList.selectedScriptName) {
+				api.saveContent(filesList.selectedScriptName);
+			}
 		}
 	};
 	
@@ -360,68 +425,9 @@
 
 	$(function() {
 
-		// get list of scripts from the server
-		filesList.load();
-
-		$('#add-new-script-btn').on('click', function() {
-			var title = 'Create script',
-				initialValue = '',
-				inputLabel = 'New script name',
-				placeholder = '',
-				buttonText = 'Create',
-				buttonIcon = null;
-
-			dialog.prompt(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, function(newScriptName) {
-				if (newScriptName) {
-					filesList.createAndAdd(newScriptName);
-				}
-			});
-		});
-
-		// add new script callback
-		$('#new-script-name-form').on('submit', function(evt) {
-			evt.preventDefault();
-			
-			var newScriptName = $('#new-script-name').val().trim();
-			if (newScriptName) {
-				filesList.add(newScriptName);
-
-				// close the modal
-				$('#add-new-script-modal').closeModal();
-			}
-		});
-
-		// load the source
-		$('#files-list-wrapper')
-			.on('click', '.load-source-link', function() {
-				filesList.selectScript($(this).parents('.collection-item').attr('script-name'));
-			})
-			.on('click', '.rename-script', function() {
-				// get the script name to delete
-				var scriptName = $(this).parents('.collection-item').attr('script-name');
-				
-				var newName = prompt('New script name', scriptName);
-				if (!newName) {
-					return;
-				}
-				
-				api.renameScript(scriptName, newName);
-				
-			})
-			.on('click', '.delete-script', function() {
-				if (!confirm('sure?')) {
-					return;
-				}
-				
-				// get the script name to delete
-				var scriptName = $(this).parents('.collection-item').attr('script-name');
-				
-				filesList.delete(scriptName);
-			});
-		
-		
-		$('#save-file-content-btn').on('click', api.saveScriptContent);
-		
+		// initialize the scripts list - load and assign events
+		filesList.init();
+	
 		// fix heights
 		fixHeights();
 		$(window).on('resize', fixHeights);
