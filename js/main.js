@@ -72,9 +72,6 @@
 						api.loadFilesList();
 						
 						notify('Renamed successfully');
-						
-						// load the new content to the editor
-						api.loadScriptContent(newScrName);
 					} else {
 						error(res);
 					}
@@ -129,6 +126,79 @@
 	};
 
 	var dialog = {
+		// display a popup
+		// button: {caption, isCancel, callbackFn}
+		_show: function(title, content, buttons, initFn) {
+			var buttonsHtml = [],
+				buttonId;
+			if (buttons && buttons.length > 0) {
+				buttons.forEach(function(button) {
+
+					// generate button ID
+					buttonId = button.caption.replace(/\W+/g, '-');
+
+					// generate button HTML
+					buttonsHtml.push(
+						'<button type="button" id="dialog-btn-'+buttonId+'" class="waves-effect waves-green btn-flat">'+button.caption+'</button>' 
+					);
+
+					// assign a callback in case of a "cancel" button
+					if (button.isCancel) {
+						button.callbackFn = function() {
+							$('#dialog-modal').closeModal();
+						};
+					}
+
+					// assign click event to the button
+					$('body').off('click', '#dialog-modal #dialog-btn-' + buttonId);
+					$('body').on('click', '#dialog-modal #dialog-btn-' + buttonId, button.callbackFn);
+					$('body').on('click', '#dialog-modal #dialog-btn-' + buttonId, function() {
+						$('#dialog-modal').closeModal();
+					});
+				});
+			}
+
+			title = title || 'Dialog Modal';
+
+			var $dialog = $(
+				'<div id="dialog-modal" class="modal">' + 
+					'<div class="modal-content">' + 
+						'<h4>' + title + '</h4>' + 
+						'<div>' + content + '</div>' + 
+					'</div>' + 
+					'<div class="modal-footer">' + 
+						buttonsHtml.reverse().join('') +
+					'</div>' + 
+				'</div>'
+			);
+
+			// remove the previous modal
+			if ($('#dialog-modal').length) {
+				$('#dialog-modal').remove();
+			}
+
+			// add the new modal
+			$('body').append($dialog);
+
+			// call the initialization function
+			if (typeof(initFn) == 'function') {
+				initFn($dialog);
+			}
+
+			$dialog.openModal();
+
+		},
+
+		confirm: function(title, callbackFn) {
+			dialog._show(title, '', [{
+				caption: 'Ok', 
+				callbackFn: callbackFn
+			}, {
+				caption: 'Cancel',
+				isCancel: true
+			}]);
+		},
+
 		prompt: function(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, callbackFn) {
 			if (!title) {
 				console.warn('`title` was not provided to the prompt dialog');
@@ -239,8 +309,7 @@
 					if (newScriptName) {
 						filesList.createAndAdd(newScriptName);
 					}
-				});
-			});
+				}); });
 
 			// assign events to the list
 			$('#files-list-wrapper')
@@ -251,23 +320,30 @@
 					// get the script name to delete
 					var scriptName = $(this).parents('.collection-item').attr('script-name');
 					
-					var newName = prompt('New script name', scriptName);
-					if (!newName) {
-						return;
-					}
-					
-					api.renameScript(scriptName, newName);
-					
+					var title = 'Rename script',
+						initialValue = scriptName,
+						inputLabel = 'New script name',
+						placeholder = '',
+						buttonText = 'Rename',
+						buttonIcon = null;
+
+					dialog.prompt(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, function(newScriptName) {
+						console.log('newScriptName', newScriptName);
+						if (!newScriptName) {
+							return;
+						}
+						
+						filesList.rename(scriptName, newScriptName);
+					});
 				})
 				.on('click', '.delete-script', function() {
-					if (!confirm('sure?')) {
-						return;
-					}
-					
 					// get the script name to delete
 					var scriptName = $(this).parents('.collection-item').attr('script-name');
-					
-					filesList.delete(scriptName);
+
+					dialog.confirm('Delete the script?', function() {
+						// delete the file from the hardisk
+						filesList.delete(scriptName);
+					});
 				});
 
 		},
@@ -287,7 +363,9 @@
 			$('#files-list .collection-item[script-name="'+scrName+'"]').addClass('active');
 
 			// load the content of the script
-			api.loadScriptContent(scrName);
+			api.loadScriptContent(scrName).then(function() {
+				editor.focus();
+			});
 		},
 
 		// clear the list
@@ -331,6 +409,18 @@
 				'	</div>' + 
 				'</li>'
 			).insertAfter($('ul#files-list li.collection-header'));
+		},
+
+		rename: function(scriptName, newScriptName) {
+			api.renameScript(scriptName, newScriptName).then(function() {
+				// update the name in the list
+				$('.collection-item[script-name="' + scriptName + '"]')
+					.attr('script-name', newScriptName)
+					.find('.load-source-link').text(newScriptName);
+
+				// select the new script
+				filesList.selectScript(newScriptName);
+			});
 		},
 
 		delete: function(scriptName) {
@@ -399,6 +489,9 @@
 
 			// assign event to the "Save" button
 			$('#save-file-content-btn').on('click', editor.saveContent);
+		},
+		focus: function() {
+			editor.obj.focus();
 		},
 		setContent: function(content) {
 			editor.init();
