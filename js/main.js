@@ -14,9 +14,7 @@
 				type: 'get',
 				url: 'api.php?op=create_script&name='+scrName,
 				success: function(res) {
-					if (res === 'OK') {
-						api.loadFilesList();
-					} else {
+					if (res !== 'OK') {
 						error(res);
 					}
 				},
@@ -38,9 +36,6 @@
 						error('ERROR: ' + res);
 						return;
 					}
-
-					filesList.set(list);
-
 				},
 				error: function() {
 					error('error loading list of scripts');
@@ -55,9 +50,6 @@
 				success: function(res) {
 					// update the editor
 					editor.setContent(res);
-					
-					// set the currently selected script name
-					filesList.selectedScriptName = scrName;
 					
 					// enable the save button
 					$('#save-file-content-btn').removeClass('disabled');
@@ -99,9 +91,6 @@
 				url: 'api.php?op=delete_script&name='+scrName,
 				success: function(res) {
 					if (res === 'OK') {
-						// update the list
-						api.loadFilesList();
-						
 						notify('Deleted successfully');
 					} else {
 						error(res);
@@ -113,23 +102,20 @@
 			});
 		},
 
-		saveScriptContent: function() {
-			if (!filesList.selectedScriptName) {
-				error('No script is selected');
-				return;
-			}
-			
+		saveContent: function(scriptName) {
 			$('#save-file-content-btn').addClass('disabled');
 			
 			return $.ajax({
 				type: 'post',
-				url: 'api.php?op=update_script&name='+filesList.selectedScriptName,
+				url: 'api.php?op=update_script&name='+scriptName,
 				data: {
 					content: editor.getContent()
 				},
 				success: function(res) {
 					if (res === 'OK') {
 						notify('Saved successfully');
+
+						// re-enable the save button
 						$('#save-file-content-btn').removeClass('disabled');
 					} else {
 						error(res);
@@ -142,9 +128,116 @@
 		}
 	};
 
+	var dialog = {
+		prompt: function(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, callbackFn) {
+			if (!title) {
+				console.warn('`title` was not provided to the prompt dialog');
+				title = 'Input';
+			}
+
+			// init the parameters
+			initialValue = initialValue || '';
+			inputLabel = inputLabel || title
+			placeholder = placeholder || '';
+			buttonText = buttonText || 'Ok';
+			buttonIcon = 'send';
+
+			// add the dialog HTML to the page
+			var $dialog = $(
+				'<div id="dialog-modal" class="modal">' + 
+					'<form id="dialog-modal-form">' + 
+						'<div class="modal-content">' + 
+							'<h4>' + title + '</h4>' + 
+							'<div class="row">' + 
+								'<div class="input-field col s12">' + 
+									'<input type="text" id="dialog-input" placeholder="' + placeholder + '" value="' + initialValue + '" />' + 
+									'<label for="dialog-input">' + inputLabel + '</label>' + 
+								'</div>' + 
+							'</div>' + 
+						'</div>' + 
+						'<div class="modal-footer">' + 
+							'<button type="button" id="dialog-cancel-btn" class="waves-effect waves-green btn-flat">Cancel</button>' + 
+							'<button type="submit" id="dialog-submit-btn" class="waves-effect waves-green btn-flat">' + buttonText + '</button>' + 
+						'</div>' + 
+					'</form>' + 
+				'</div>'
+			);
+
+			// remove the previous modal
+			if ($('#dialog-modal').length) {
+				$('#dialog-modal').remove();
+			}
+
+			// add the new modal
+			$('body').append($dialog);
+
+			// bind events
+			$dialog.find('#dialog-modal-form').on('submit', function(evt) {
+				console.log('in the submit');
+				evt.preventDefault();
+
+				// get the value of the input
+				var val = $('#dialog-input').val().trim();
+
+				// close the dialog
+				$dialog.closeModal();
+
+				// trigger the callback
+				if (typeof(callbackFn) == 'function') {
+					callbackFn(val);
+				}
+			});
+
+			$dialog.find('#dialog-cancel-btn').on('click', function() {
+				// close the dialog
+				$dialog.closeModal();
+
+				// trigger the callback
+				if (typeof(callbackFn) == 'function') {
+					callbackFn('');
+				}
+			});
+
+			// display the dialog
+			$dialog.openModal({
+				dismissable: false,
+			});
+		}
+	}
+
 	var filesList = {
 		// current selected script name on the files list on the left
 		selectedScriptName: null,
+
+		// fix the script name
+		sanitizeNewName: function(scriptName) {
+			if (!/^test_/i.test(scriptName)) {
+				scriptName = 'test_' + scriptName;
+			}
+			if (!/\.php$/i.test(scriptName)) {
+				scriptName = scriptName + '.php';
+			}
+
+			return scriptName;
+		},
+		
+		// mark and load a script
+		selectScript: function(scrName) {
+			// set the selected script
+			filesList.selectedScriptName = scrName;
+			
+			// put the script name near the title
+			$('#currently-selected-script').text(' - ' + scrName);
+
+			// unmark currently selected line
+			$('#files-list .collection-item').removeClass('active');
+
+			// mark the required script
+			$('#files-list .collection-item[script-name="'+scrName+'"]').addClass('active');
+
+			// load the content of the script
+			api.loadScriptContent(scrName);
+		},
 
 		// clear the list
 		clear: function() {
@@ -152,23 +245,51 @@
 		},
 	
 		// add new file to the list 
-		add: function(scrName) {
+		createAndAdd: function(scriptName) {
+
+			// fix the name of the new script
+			scriptName = filesList.sanitizeNewName(scriptName);
+
+			// create the file on the server
+			api.createNewScript(scriptName).then(function(res) {
+				if (res === 'OK') {
+					// add to the list
+					filesList.add(scriptName);
+
+					// select the new file
+					filesList.selectScript(scriptName);
+				}
+			});
+		},
+
+		add: function(scriptName) {
+			// create and prepend the new element
 			var newLi = $(
-				'<li class="collection-item">' +
-				'	<a href="scripts/' + scrName + '" target="_blank" title="Execute the script in a separate tab/window">' + scrName + '</a>' + 
+				'<li class="collection-item" script-name="' + scriptName + '">' +
+				'	<a href="javascript:;" title="Click to edit the script" class="load-source-link">' + scriptName + '</a>' + 
 				'	<div class="secondary-content">' + 
-				'		<a href="javascript:;" script-name="' + scrName + '" class="delete-script" title="Delete the script">' + 
+				'		<a href="javascript:;" class="delete-script" title="Delete the script">' + 
 				'			<i class="material-icons">delete</i>' + 
 				'		</a>' + 
-				'		<a href="javascript:;" script-name="' + scrName + '" class="rename-script" title="Rename the script">' + 
+				'		<a href="javascript:;" class="rename-script" title="Rename the script">' + 
 				'			<i class="material-icons">mode_edit</i>' + 
 				'		</a>' + 
-				'		<a href="javascript:;" script-name="' + scrName + '" class="load-source-link" title="Load the source code">' + 
-				'			<i class="material-icons">code</i>' + 
+				'		<a href="scripts/' + scriptName + '" target="_blank" title="Open the script in a new window">' + 
+				'			<i class="material-icons">open_in_new</i>' + 
 				'		</a>' + 
 				'	</div>' + 
 				'</li>'
 			).insertAfter($('ul#files-list li.collection-header'));
+		},
+
+		delete: function(scriptName) {
+			// delete it from the disk
+			api.deleteScript(scriptName).then(function(res) {
+				if (res === 'OK') {
+					// remove the script from the list
+					$('.collection-item[script-name="' + scriptName + '"]').remove();
+				}
+			});
 		},
 
 		// populate list
@@ -188,6 +309,18 @@
 
 				$('#files-list').append(newLi);
 			}
+		},
+
+		load: function() {
+			api.loadFilesList().then(function(res) {
+				try {
+					var list = JSON.parse(res);
+				} catch(e) {
+					return;
+				}
+
+				filesList.set(list);
+			});
 		}
 
 	};
@@ -228,37 +361,44 @@
 	$(function() {
 
 		// get list of scripts from the server
-		api.loadFilesList();
+		filesList.load();
+
+		$('#add-new-script-btn').on('click', function() {
+			var title = 'Create script',
+				initialValue = '',
+				inputLabel = 'New script name',
+				placeholder = '',
+				buttonText = 'Create',
+				buttonIcon = null;
+
+			dialog.prompt(title, initialValue, inputLabel, placeholder, buttonText, buttonIcon, function(newScriptName) {
+				if (newScriptName) {
+					filesList.createAndAdd(newScriptName);
+				}
+			});
+		});
 
 		// add new script callback
 		$('#new-script-name-form').on('submit', function(evt) {
 			evt.preventDefault();
-			evt.stopPropagation();
 			
-			var val = $('#new-script-name').val().trim();
-			if (val) {
-				api.createNewScript(val).always(function() {
-					// close the modal
-					$('#add-new-script-modal').closeModal();
-				});
+			var newScriptName = $('#new-script-name').val().trim();
+			if (newScriptName) {
+				filesList.add(newScriptName);
+
+				// close the modal
+				$('#add-new-script-modal').closeModal();
 			}
 		});
 
 		// load the source
 		$('#files-list-wrapper')
 			.on('click', '.load-source-link', function() {
-				// mark the current item
-				$('#files-list .collection-item').removeClass('active');
-				$(this).parents('.collection-item').addClass('active');
-
-				var scriptName = $(this).attr('script-name');
-				if (scriptName) {
-					api.loadScriptContent(scriptName);
-				}
+				filesList.selectScript($(this).parents('.collection-item').attr('script-name'));
 			})
 			.on('click', '.rename-script', function() {
 				// get the script name to delete
-				var scriptName = $(this).attr('script-name');
+				var scriptName = $(this).parents('.collection-item').attr('script-name');
 				
 				var newName = prompt('New script name', scriptName);
 				if (!newName) {
@@ -274,17 +414,13 @@
 				}
 				
 				// get the script name to delete
-				var scriptName = $(this).attr('script-name');
+				var scriptName = $(this).parents('.collection-item').attr('script-name');
 				
-				api.deleteScript(scriptName);
-				
+				filesList.delete(scriptName);
 			});
 		
 		
 		$('#save-file-content-btn').on('click', api.saveScriptContent);
-		
-		// initialize the model object
-		$('.modal-trigger').leanModal();
 		
 		// fix heights
 		fixHeights();
