@@ -63,8 +63,17 @@ switch ($op) {
 		ret(array_values($filesList));
 		break;
 	case 'create_script':
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			ret('must be a POST request. Optionally with `content` parameter');
+		}
+
 		if (file_exists($filePath)) {
 			ret('file already exists');
+		}
+
+		$content = "<?php\r\n";
+		if (isset($_POST['content'])) {
+			$content = $_POST['content'];
 		}
 
 		if (!is_writeable(dirname($filePath))) {
@@ -72,7 +81,7 @@ switch ($op) {
 		}
 
 		// create the file
-		file_put_contents($filePath, "<?php\r\n");
+		file_put_contents($filePath, $content);
 
 		break;
 	case 'delete_script':

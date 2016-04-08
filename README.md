@@ -33,8 +33,9 @@ TODO
 - [ ] Fix editor PHP highlighting
 - [X] When creating new script, select it automatically
 - [X] Create "Confirm" and "Prompt" dialogs
-- [ ] Initialize editor on the beginning, and once saving ask for a script name
+- [X] Initialize editor on the beginning, and once saving ask for a script name
 - [X] Add icon to execute the script in another window, and load source by clicking the name itself
+- [ ] Change the HTML of the panels' titles
 
 Credits
 =======

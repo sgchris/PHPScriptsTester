@@ -1,3 +1,8 @@
+input[type="text"].input-error,
+input[type="password"].input-error {
+	background: yellow;
+}
+
 #add-new-script-btn {
 	margin-top: 18px;
 }
