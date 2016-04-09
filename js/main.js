@@ -427,11 +427,33 @@
 			});
 		},
 
-		add: function(scriptName) {
+		getPrettySize: function(size) {
+			if (size < 1024) {
+				return size + ' B';
+			} else if (size < 1024 * 1024) {
+				return (size / 1024).toFixed(2) + ' KB';
+			} else if (size < 1024 * 1024 * 1024) {
+				return (size / (1024 * 1024)).toFixed(2) + ' MB';
+			}
+
+			return size;
+		},
+
+		add: function(scriptObject) {
+			var scriptName, scriptSize;
+			if (typeof(scriptObject) == 'string') {
+				scriptName = scriptObject;
+				scriptSize = 0 + ' B';
+			} else {
+				scriptName = scriptObject.name;
+				scriptSize = filesList.getPrettySize(scriptObject.size);
+			}
+
 			// create and prepend the new element
 			var newLi = $(
 				'<li class="collection-item" script-name="' + scriptName + '">' +
-				'	<a href="javascript:;" title="Click to edit the script" class="load-source-link">' + scriptName + '</a>' + 
+				'	<span class="script-size">' + scriptSize + '</span>' + 
+				'	<a href="javascript:;" title="' + scriptName + '\nClick to edit the script" class="load-source-link">' + scriptName + '</a>' + 
 				'	<div class="secondary-content">' + 
 				'		<a href="javascript:;" class="delete-script" title="Delete the script">' + 
 				'			<i class="material-icons">delete</i>' + 
@@ -452,7 +474,7 @@
 				// update the name in the list
 				$('.collection-item[script-name="' + scriptName + '"]')
 					.attr('script-name', newScriptName)
-					.find('.load-source-link').text(newScriptName);
+					.find('.load-source-link').text(newScriptName).attr('title', newScriptName + "\nClick to edit the script");
 
 				// select the new script
 				filesList.selectScript(newScriptName);
@@ -480,8 +502,8 @@
 
 			// fill the list with the existing scripts
 			if (list.length > 0) {
-				list.forEach(function(scrName) {
-					filesList.add(scrName);
+				list.forEach(function(scrObj) {
+					filesList.add(scrObj);
 				});
 			} else {
 				var newLi = $('<li>')

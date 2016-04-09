@@ -60,6 +60,13 @@ switch ($op) {
 			return $mtimeA > $mtimeB ? 1 : ($mtimeA == $mtimeB ? 0 : -1);
 		});
 
+		array_walk($filesList, function(&$item) use ($scriptsFolder) {
+			$item = array(
+				'name' => $item,
+				'size' => filesize($scriptsFolder . DS . $item),
+			);
+		});
+
 		ret(array_values($filesList));
 		break;
 	case 'create_script':
