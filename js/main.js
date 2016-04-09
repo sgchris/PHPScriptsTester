@@ -233,7 +233,7 @@
 							'<div class="row">' + 
 								'<div class="input-field col s12">' + 
 									'<input type="text" id="dialog-input" placeholder="' + options.placeholder + '" value="' + options.initialValue + '" />' + 
-									'<label for="dialog-input">' + options.inputLabel + '</label>' + 
+									'<label for="dialog-input" class="active">' + options.inputLabel + '</label>' + 
 								'</div>' + 
 							'</div>' + 
 						'</div>' + 
@@ -286,9 +286,8 @@
 			});
 
 			// display the dialog
-			$dialog.openModal({
-				dismissable: false,
-			});
+			$dialog.openModal();
+			$dialog.find('input#dialog-input').select().focus();
 		}
 	}
 
@@ -377,7 +376,7 @@
 					// get the script name to delete
 					var scriptName = $(this).parents('.collection-item').attr('script-name');
 
-					dialog.confirm('Delete the script?', function() {
+					dialog.confirm('Delete "'+scriptName+'" script?', function() {
 						// delete the file from the hardisk
 						filesList.delete(scriptName);
 					});
@@ -527,6 +526,10 @@
 					}
 				});
 				editor.obj.setSize('100%', '100%');
+				editor.obj.focus();
+
+				editor.setContent("<?php\n\n");
+				editor.obj.setCursor(3, 0);
 			}
 
 			// assign event to the "Save" button
