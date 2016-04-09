@@ -520,7 +520,10 @@
 			if (!editor.obj) {
 				editor.obj = CodeMirror($('#file-content').get(0), {
 					lineNumbers: true,
-					mode: "htmlmixed",
+					tabSize: 4,
+					smartIndent: true,
+					indentWithTabs: true,
+					mode: "php",
 					extraKeys: {
 						'Ctrl-S': editor.saveContent
 					}
