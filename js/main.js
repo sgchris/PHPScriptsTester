@@ -321,6 +321,24 @@
 			return newName;
 		},
 
+		// open a dialog and create new script
+		addNewScript: function() {
+			var options = {
+				title: 'Create script',
+				initialValue: '',
+				inputLabel: 'New script name',
+				placeholder: '',
+				buttonText: 'Create',
+				buttonIcon: null,
+				callbackFn: function(newScriptName) {
+					if (newScriptName) {
+						filesList.createAndAdd(newScriptName);
+					}
+				}
+			};
+			dialog.prompt(options);
+		},
+
 		init: function() {
 
 			// load the current scripts
@@ -328,20 +346,7 @@
 
 			// add new script button
 			$('#add-new-script-btn').on('click', function() {
-				var options = {
-					title: 'Create script',
-					initialValue: '',
-					inputLabel: 'New script name',
-					placeholder: '',
-					buttonText: 'Create',
-					buttonIcon: null,
-					callbackFn: function(newScriptName) {
-						if (newScriptName) {
-							filesList.createAndAdd(newScriptName);
-						}
-					}
-				};
-				dialog.prompt(options);
+				filesList.addNewScript();
 			});
 
 			// assign events to the list
@@ -425,6 +430,24 @@
 					filesList.selectScript(scriptName);
 				}
 			});
+		},
+
+		// open a dialog and create new script
+		addNewScript: function() {
+			var options = {
+				title: 'Create script',
+				initialValue: '',
+				inputLabel: 'New script name',
+				placeholder: '',
+				buttonText: 'Create',
+				buttonIcon: null,
+				callbackFn: function(newScriptName) {
+					if (newScriptName) {
+						filesList.createAndAdd(newScriptName);
+					}
+				}
+			};
+			dialog.prompt(options);
 		},
 
 		getPrettySize: function(size) {
@@ -552,7 +575,18 @@
 					indentWithTabs: true,
 					mode: "php",
 					extraKeys: {
-						'Ctrl-S': editor.saveContent
+						// save the content to the current open file or create new one if no one is selected
+						'Ctrl-S': editor.saveContent,
+
+						// create new script (same as the top "+" button)
+						'Ctrl-I': filesList.addNewScript,
+
+						// execute the script
+						'Ctrl-E': function() {
+							$('#files-list .collection-item[script-name="'+filesList.selectedScriptName+'"]')
+								.find('.open-script-in-new-tab')[0].click();
+								//.trigger('click');
+						}
 					}
 				});
 				editor.obj.setSize('100%', '100%');
