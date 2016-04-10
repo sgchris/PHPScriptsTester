@@ -3,4 +3,9 @@
 *.phprj
 *.workspace
 
+# ignore the created scripts
 scripts/*
+
+# ignode VIM files
+**/*.swp
+

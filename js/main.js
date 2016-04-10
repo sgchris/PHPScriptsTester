@@ -376,7 +376,7 @@
 					// get the script name to delete
 					var scriptName = $(this).parents('.collection-item').attr('script-name');
 
-					dialog.confirm('Delete "'+scriptName+'" script?', function() {
+					dialog.confirm('<span style="color: #C11;">Delete "'+scriptName+'" script?</span>', function() {
 						// delete the file from the hardisk
 						filesList.delete(scriptName);
 					});
@@ -461,7 +461,7 @@
 				'		<a href="javascript:;" class="rename-script" title="Rename the script">' + 
 				'			<i class="material-icons">mode_edit</i>' + 
 				'		</a>' + 
-				'		<a href="scripts/' + scriptName + '" target="_blank" title="Open the script in a new window">' + 
+				'		<a href="scripts/' + scriptName + '" target="_blank" title="Open the script in a new window" class="open-script-in-new-tab">' + 
 				'			<i class="material-icons">open_in_new</i>' + 
 				'		</a>' + 
 				'	</div>' + 
@@ -472,9 +472,14 @@
 		rename: function(scriptName, newScriptName) {
 			api.renameScript(scriptName, newScriptName).then(function() {
 				// update the name in the list
-				$('.collection-item[script-name="' + scriptName + '"]')
-					.attr('script-name', newScriptName)
-					.find('.load-source-link').text(newScriptName).attr('title', newScriptName + "\nClick to edit the script");
+				$('.collection-item[script-name="' + scriptName + '"]').attr('script-name', newScriptName)
+					.find('.load-source-link')
+						.text(newScriptName)
+						.attr('title', newScriptName + "\nClick to edit the script")
+					.end()
+					.find('.open-script-in-new-tab')
+						.attr('href', 'scripts/' + newScriptName);
+
 
 				// select the new script
 				filesList.selectScript(newScriptName);
