@@ -583,9 +583,13 @@
 
 						// execute the script
 						'Ctrl-E': function() {
+							if (!filesList.selectedScriptName) {
+								notify('Please save the script before executing');
+								return;
+							}
+
 							$('#files-list .collection-item[script-name="'+filesList.selectedScriptName+'"]')
 								.find('.open-script-in-new-tab')[0].click();
-								//.trigger('click');
 						}
 					}
 				});
