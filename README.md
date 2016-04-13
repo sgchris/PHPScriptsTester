@@ -37,6 +37,7 @@ TODO
 - [X] Add icon to execute the script in another window, and load source by clicking the name itself
 - [X] Add file size near every file
 - [ ] Change the HTML of the panels' titles
+- [X] Update script sizes after saving script content
 
 Credits
 =======
