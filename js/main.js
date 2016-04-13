@@ -552,8 +552,24 @@
 
 				filesList.set(list);
 			});
-		}
+		},
 
+		// load the list of the scripts from the server and 
+		// update the sizes
+		updateSizes: function() {
+			api.loadFilesList().then(function(res) {
+				try {
+					var list = JSON.parse(res);
+				} catch(e) {
+					return;
+				}
+
+				list.forEach(function(item) {
+					$('.collection-item[script-name="' + item.name + '"]')
+						.find('span.script-size').text(filesList.getPrettySize(item.size));
+				});
+			});
+		}
 	};
 
 	// the CodeMirror object
@@ -617,7 +633,9 @@
 		saveContent: function() {
 			//filesList
 			if (filesList.selectedScriptName) {
-				api.saveContent(filesList.selectedScriptName, editor.getContent());
+				api.saveContent(filesList.selectedScriptName, editor.getContent())
+					// update the files list
+					.then(filesList.updateSizes);
 			} else {
 				var options = {
 					title: 'Create script',
