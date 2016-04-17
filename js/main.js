@@ -462,6 +462,17 @@
 			return size;
 		},
 
+		_getPrettyScriptName: function(realScriptName) {
+			realScriptName = realScriptName.replace(/^test_/i, '').replace(/\.php$/i, '').replace(/[^A-Za-z0-9]+/g, ' ');
+			var prettyNameParts = [];
+			realScriptName.split(/\s+/).forEach(function(word) {
+				word = word.charAt(0).toUpperCase() + word.substr(1);
+				prettyNameParts.push(word);
+			});
+
+			return prettyNameParts.join(' ');
+		},
+
 		add: function(scriptObject) {
 			var scriptName, scriptSize;
 			if (typeof(scriptObject) == 'string') {
@@ -476,7 +487,7 @@
 			var newLi = $(
 				'<li class="collection-item" script-name="' + scriptName + '">' +
 				'	<span class="script-size">' + scriptSize + '</span>' + 
-				'	<a href="javascript:;" title="' + scriptName + '\nClick to edit the script" class="load-source-link">' + scriptName + '</a>' + 
+				'	<a href="javascript:;" title="' + scriptName + '\nClick to edit the script" class="load-source-link">' + filesList._getPrettyScriptName(scriptName) + '</a>' + 
 				'	<div class="secondary-content">' + 
 				'		<a href="javascript:;" class="delete-script" title="Delete the script">' + 
 				'			<i class="material-icons">delete</i>' + 
