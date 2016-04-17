@@ -297,6 +297,10 @@
 
 		// fix the script name
 		sanitizeNewName: function(scriptName) {
+			// replace all the white spaces
+			scriptName = scriptName.replace(/\s+/g, '_');
+
+			// add "test_" and ".php"
 			if (!/^test_/i.test(scriptName)) {
 				scriptName = 'test_' + scriptName;
 			}
@@ -366,10 +370,10 @@
 						buttonText: 'Rename',
 						buttonIcon: null,
 						callbackFn: function(newScriptName) {
-							console.log('newScriptName', newScriptName);
 							if (!newScriptName) {
 								return;
 							}
+							newScriptName = filesList.sanitizeNewName(newScriptName);
 							
 							filesList.rename(scriptName, newScriptName);
 						}
@@ -508,7 +512,7 @@
 				// update the name in the list
 				$('.collection-item[script-name="' + scriptName + '"]').attr('script-name', newScriptName)
 					.find('.load-source-link')
-						.text(newScriptName)
+						.text(filesList._getPrettyScriptName(newScriptName))
 						.attr('title', newScriptName + "\nClick to edit the script")
 					.end()
 					.find('.open-script-in-new-tab')

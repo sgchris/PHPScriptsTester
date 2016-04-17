@@ -46,4 +46,7 @@ input[type="password"].input-error {
 .collection-item.active .script-size {
 	color: #FFF;
 }
-
+.shortcut-explanation {
+	margin-left: 20px;
+	color: #AAA;
+}
