@@ -6,6 +6,11 @@ Usually these kind of scripts are used for development, testing or learning purp
 This application must not (!) be installed on production servers, or any other important servers
 that may be exposed to incoming connections
 
+Screenshot
+==========
+
+![PHP scripts tester screenshot](http://online-php.com/images/ztest_screenshot_1.jpg)
+
 Installation
 =======================================
 
