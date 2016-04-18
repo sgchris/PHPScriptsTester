@@ -9,7 +9,7 @@ that may be exposed to incoming connections
 Screenshot
 ==========
 
-![PHP scripts tester screenshot within browser](http://online-php.com/images/ztest_screenshot_1.jpg)
+![PHP scripts tester screenshot within browser](http://online-php.com/images/ztest_screenshot_2.jpg)
 
 Installation
 =======================================
