@@ -335,6 +335,8 @@
 				buttonText: 'Create',
 				buttonIcon: null,
 				callbackFn: function(newScriptName) {
+					newScriptName = filesList.sanitizeNewName(newScriptName);
+
 					if (newScriptName) {
 						filesList.createAndAdd(newScriptName);
 					}
