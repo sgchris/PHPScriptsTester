@@ -480,20 +480,25 @@
 		},
 
 		add: function(scriptObject) {
-			var scriptName, scriptSize;
+			var scriptName, scriptSize = 0 + ' B', isOld = false;
 			if (typeof(scriptObject) == 'string') {
 				scriptName = scriptObject;
-				scriptSize = 0 + ' B';
 			} else {
 				scriptName = scriptObject.name;
 				scriptSize = filesList.getPrettySize(scriptObject.size);
+				
+				var timeNow = (new Date()).getTime() / 1000;
+				var diffSeconds = timeNow - scriptObject.modified;
+
+				// consider as old if older than a week
+				isOld = scriptObject.modified && (diffSeconds > 7 * 24 * 60 * 60);
 			}
 
 			// create and prepend the new element
 			var newLi = $(
 				'<li class="collection-item" script-name="' + scriptName + '">' +
 				'	<span class="script-size">' + scriptSize + '</span>' + 
-				'	<a href="javascript:;" title="' + scriptName + '\nClick to edit the script" class="load-source-link">' + filesList._getPrettyScriptName(scriptName) + '</a>' + 
+				'	<a href="javascript:;" title="' + scriptName + '\nClick to edit the script" class="load-source-link">' + filesList._getPrettyScriptName(scriptName) + (isOld ? ' <sup style="color:#000;">old</sup>' : '') + '</a>' + 
 				'	<div class="secondary-content">' + 
 				'		<a href="javascript:;" class="delete-script" title="Delete the script">' + 
 				'			<i class="material-icons">delete</i>' + 

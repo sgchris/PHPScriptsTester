@@ -52,6 +52,7 @@ switch ($op) {
 			return true;
 		});
 
+		// sort the list by modify date (desc)
 		usort($filesList, function($a, $b) use ($scriptsFolder) {
 			// get the modification date
 			$mtimeA = filemtime($scriptsFolder.DS.$a);
@@ -61,9 +62,11 @@ switch ($op) {
 		});
 
 		array_walk($filesList, function(&$item) use ($scriptsFolder) {
+			$itemFullPath = $scriptsFolder . DS . $item;
 			$item = array(
 				'name' => $item,
 				'size' => filesize($scriptsFolder . DS . $item),
+				'modified' => filemtime($itemFullPath),
 			);
 		});
 
